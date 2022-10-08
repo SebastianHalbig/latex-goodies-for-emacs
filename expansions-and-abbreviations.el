@@ -277,4 +277,4 @@
       " cat"   (lambda () (interactive)
                 (yas-expand-snippet "\\cat{$1}$0")))))
 
-(provide 'expansions-and-abbreviations.el)
+(provide 'expansions-and-abbreviations)
