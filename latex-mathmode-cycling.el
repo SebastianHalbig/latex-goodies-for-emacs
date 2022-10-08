@@ -325,3 +325,5 @@
       (TeX-newline)
       ))
   )
+
+(provide 'latex-mathmode-cycling)
