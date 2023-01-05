@@ -97,6 +97,7 @@
       (progn
         (skip-chars-forward "[:blank:].,")))
       (end-env (nth 0 next-env) (nth 1 next-env) next-env-inline))
+  (LaTeX-indent-line)
   (if point-relative-to-start
       (goto-char (+ new-starting-pos point-relative-to-start))
      (goto-char new-starting-pos))
