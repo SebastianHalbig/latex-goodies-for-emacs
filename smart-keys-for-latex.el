@@ -1,5 +1,7 @@
 ;;; latex-goodies-for emacs.el
 ;; Not finished at all
+(require 'dash)
+(require 'cdlatex)
 
 (require 'latex-env-dep-return)
 (require 'latex-change-environments)
