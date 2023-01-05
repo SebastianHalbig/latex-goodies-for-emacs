@@ -72,24 +72,34 @@
   (setq next-env-number (mod (1+ env-number) (plist-get number-envs-of-type type)))
   (setq next-env (nth next-env-number (plist-get custom-env-plist type)))
   (setq label-begin (+ starting-pos (length starting-del-expanded)))
+  (setq current-env-inline nil)
+  (setq next-env-inline (nth 2 next-env))
 
   (goto-char starting-pos)
   (delete-region starting-pos label-begin)
-  (start-env (nth 0 next-env) (nth 1 next-env) (nth 2 next-env))
+  (start-env (nth 0 next-env) (nth 1 next-env) next-env-inline)
 
   (delete-region (point) (+ (point) (- starting-pos-wrapped-text label-begin)))
-  (setq label-pos (generate-label (nth 3 next-env) label-text (nth 2 next-env)))
+  (setq label-pos (generate-label (nth 3 next-env) label-text))
+
   ;; TODO globally update the label if it is changed
+
+ (unless next-env-inline (TeX-newline))
 
   (setq new-starting-pos (point))
   (setq wrap-offset (- new-starting-pos starting-pos-wrapped-text))
   (goto-char (+ ending-pos-wrapped-text wrap-offset))
   (delete-region (point) (+ ending-pos wrap-offset))
-  (save-excursion (end-env (nth 0 next-env) (nth 1 next-env) (nth 2 next-env)))
-  (LaTeX-indent-line)
+  (save-excursion
+      (if next-env-inline
+        (progn
+          (skip-chars-backward "[:blank:].,"))
+      (progn
+        (skip-chars-forward "[:blank:].,")))
+      (end-env (nth 0 next-env) (nth 1 next-env) next-env-inline))
   (if point-relative-to-start
       (goto-char (+ new-starting-pos point-relative-to-start))
-    (goto-char new-starting-pos))
+     (goto-char new-starting-pos))
   )
 
 (defun get-env-at-point (type)
@@ -196,7 +206,7 @@
 
   (goto-char start)
   (start-env starting-del ending-del inline)
-  (setq pointer-pos (generate-label label-tag label-text inline))
+  (setq pointer-pos (generate-label label-tag label-text))
   (forward-char distance)
   (save-excursion (end-env starting-del ending-del inline))
 
@@ -212,18 +222,13 @@
   (insert (expand-delimiters starting-del ending-del -1))
   )
 
-(defun generate-label (&optional label-tag label-text inline)
+(defun generate-label (&optional label-tag label-text)
   (setq point-pos nil)
   (when label-tag
     (just-one-space)
     (insert (concat "\\label{" label-tag ":" label-text "}"))
     (unless label-text (setq point-pos (- (point) 1)))
     )
-  (unless inline
-    (save-excursion
-      (forward-line)
-      (setq next-line-empty (current-line-empty)))
-    (unless next-line-empty (TeX-newline)))
   (or point-pos nil)
   )
 
@@ -241,7 +246,10 @@
   (insert (expand-delimiters starting-del ending-del 1))
   (LaTeX-indent-line)
   (unless (current-line-empty 1)
-    (if inline (just-one-space) (TeX-newline)))
+    (if inline (unless (member (string (following-char)) '("." ","))
+                  (just-one-space)
+                 )
+      (TeX-newline)))
   )
 
 (defun current-line-empty (&optional direction)
