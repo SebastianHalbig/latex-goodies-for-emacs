@@ -14,6 +14,30 @@
 (setq custom-env-ending-delimiters '())
 (setq number-envs-of-type '())
 
+(defun generate-expanded-delimiters-lists()
+  "This function expands the delimiter information contained in `custom-env-plist'.
+   Regular environment types such as `equation' are expanded. For example into
+   `\begin{equation}' and `end{equation}'."
+  (dotimes (i (length custom-env-plist))
+    (when(cl-oddp i)
+      (progn
+        (setq hierarchy (/ (- i 1) 2))
+        (setq environments (nth i custom-env-plist))
+        ;; Generate some statistics about the saved environments
+        (add-to-list 'number-envs-of-type (nth (- i 1) custom-env-plist) t)
+        (add-to-list 'number-envs-of-type (length environments) t)
+        (dotimes (j (length environments))
+          (progn
+            (setq starting-del (nth 0 (nth j environments)))
+            (setq ending-del (nth 1 (nth j environments)))
+            (setq starting-del-exp (expand-delimiters starting-del ending-del -1))
+            (setq ending-del-exp (expand-delimiters starting-del ending-del 1))
+            (add-to-list 'custom-env-starting-delimiters starting-del t)
+            (add-to-list 'custom-env-starting-delimiters (list starting-del-exp hierarchy) t)
+            (add-to-list 'custom-env-ending-delimiters starting-del t)
+            (add-to-list 'custom-env-ending-delimiters (list ending-del-exp hierarchy) t)
+            )))))
+  )
 
 ;; Information about the environment at point are stored in these variables.
 ;; TODO: This should be local and transformed into an alist.
